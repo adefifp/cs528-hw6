@@ -22,6 +22,7 @@ cleanup() {
   gcloud compute instances delete "$VM" --zone="$ZONE" --quiet 2>/dev/null || true
   gcloud sql instances patch "$DB_INSTANCE" --activation-policy=NEVER --quiet || true
   gcloud scheduler jobs resume "$STOPPER_JOB" --location="$REGION" --quiet || true
+  echo "VM $VM: $(gcloud compute instances list --filter="name=$VM" --format='value(name)' | grep -q . && echo 'still exists' || echo deleted)"
   echo "Database activation policy: $(gcloud sql instances describe "$DB_INSTANCE" --format='value(settings.activationPolicy)')"
   echo "Stopper job state: $(gcloud scheduler jobs describe "$STOPPER_JOB" --location="$REGION" --format='value(state)')"
 }
@@ -81,10 +82,10 @@ echo "===== $OUT/summary.txt ====="
 gcloud storage cat "$OUT/summary.txt"
 echo
 echo "===== $OUT/ip_country_test_predictions.csv (first 15 rows) ====="
-gcloud storage cat "$OUT/ip_country_test_predictions.csv" | head -n 16 || true
+gcloud storage cat "$OUT/ip_country_test_predictions.csv" 2>/dev/null | head -n 16 || true
 echo
 echo "===== $OUT/income_test_predictions.csv (first 15 rows) ====="
-gcloud storage cat "$OUT/income_test_predictions.csv" | head -n 16 || true
+gcloud storage cat "$OUT/income_test_predictions.csv" 2>/dev/null | head -n 16 || true
 echo
 echo "===== Files in $OUT/ ====="
 gcloud storage ls -l "$OUT/"
